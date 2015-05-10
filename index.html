@@ -6,11 +6,28 @@
   <title>Playground</title>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
+  <link rel="stylesheet" href="css/spinner.css">
 </head>
 
 <body>
   <script id="hello-template" type="text/x-handlebars-template">
-    <button class="btn btn-primary hello">foo</button>
+    {{#if activeAction}}
+      <button type="button" class="btn btn-default disabled" style="width: 100px">
+        <span class="glyphicon glyphicon-refresh glyphicon-spin" aria-hidden="true"></span>
+      </button>
+    {{else}}
+      <div class="btn-group hello">
+        <button type="button" class="btn btn-default dropdown-toggle" style="width: 100px" data-toggle="dropdown" aria-expanded="false">
+          Action <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" role="menu">
+          <li class="hello-action-1"><a href="#">Action</a></li>
+          <li class="hello-action-2"><a href="#">Another action</a></li>
+          <li class="divider"></li>
+          <li class="hello-action-3"><a href="#">Separated link</a></li>
+        </ul>
+      </div>
+    {{/if}}
   </script>
 
   <div class="container">
@@ -20,17 +37,66 @@
   </div>
 
   <script type="text/coffeescript">
+    class Action extends Backbone.View
+      initialize: (action) =>
+        @action = action
+        super()
+
+      events:
+        "click": "runOnAction"
+
+      runOnAction: =>
+        @trigger("start:action")
+        @action().done =>
+          @trigger("end:action")
+
     class MyButton extends Backbone.View
       template: Handlebars.compile($("#hello-template").html())
       el: ".hello-template-container"
+
+      initialize: =>
+        super()
+        @action1 = new Action ->
+          console.log("action 1...")
+          Q.delay(500).then =>
+            console.log("done")
+
+        @action2 = new Action ->
+          console.log("action 2...")
+          Q.delay(1000).then =>
+            console.log("done")
+
+        @action3 = new Action ->
+          console.log("action 3...")
+          Q.delay(1000).then =>
+            console.log("done")
+
       render: =>
-        @$el.html(@template())
+        @stopListening()
 
-      events:
-        "click": "onHello"
+        @$el.html(@template({activeAction: @activeAction}))
 
-      onHello: =>
-        console.log("Hello")
+        @action1.setElement(@$(".hello-action-1"))
+        @action2.setElement(@$(".hello-action-2"))
+        @action3.setElement(@$(".hello-action-3"))
+
+        @listenToAction(@action1)
+        @listenToAction(@action2)
+        @listenToAction(@action3)
+
+      listenToAction: (action) =>
+        @listenTo(action, "start:action", @onActionStart)
+        @listenTo(action, "end:action", @onActionEnd)
+
+      onActionStart: =>
+        console.log("action start")
+        @activeAction = true
+        @render()
+
+      onActionEnd: =>
+        console.log("action end")
+        @activeAction = false
+        @render()
 
     myButton = new MyButton
     myButton.render()
