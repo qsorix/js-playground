@@ -9,6 +9,15 @@
 </head>
 
 <body>
+  <script id="hello-template" type="text/x-handlebars-template">
+    <div class="hello">
+      <h1>{{title}}</h1>
+      <div class="body">
+        {{body}}
+      </div>
+    </div>
+  </script>
+
   <div class="container">
     <h1>Hello</h1>
     <button class="btn btn-primary hello">foo</button>
@@ -32,6 +41,7 @@
   <script type="text/javascript" src="extras/bootstrap.min.js"></script>
   <script type="text/javascript" src="extras/underscore-min.js"></script>
   <script type="text/javascript" src="extras/backbone-min.js"></script>
+  <script type="text/javascript" src="extras/handlebars-v3.0.3.js"></script>
   <script type="text/javascript" src="extras/coffee-script.js"></script>
 </body>
 </html>
